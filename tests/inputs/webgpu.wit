@@ -40,6 +40,9 @@ interface my-interface {
     }
     resource gpu-supported-features {
     }
+    resource set-string {
+        has: func(value: string) -> bool;
+    }
     resource wgsl-language-features {
     }
     resource gpu-adapter-info {

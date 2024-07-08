@@ -201,7 +201,9 @@ impl<'a> State<'a> {
                 weedle::interface::InterfaceMember::Iterable(_) => todo!(),
                 weedle::interface::InterfaceMember::AsyncIterable(_) => todo!(),
                 weedle::interface::InterfaceMember::Maplike(_) => todo!(),
-                weedle::interface::InterfaceMember::Setlike(_) => todo!(),
+                weedle::interface::InterfaceMember::Setlike(set) => {
+                    self.add_set(set)?;
+                }
                 weedle::interface::InterfaceMember::Stringifier(_) => todo!(),
                 weedle::interface::InterfaceMember::Attribute(attr) => {
                     let attr_name = ident_name(attr.identifier.0);
@@ -269,5 +271,31 @@ impl<'a> State<'a> {
         resource.funcs_mut().extend(functions);
 
         Ok(())
+    }
+
+    fn add_set<'b>(
+        &mut self,
+        setlike: &weedle::interface::SetlikeInterfaceMember<'b>,
+    ) -> anyhow::Result<wit_encoder::Ident> {
+        let generic_type = self.wi2w_type(&setlike.generics.body.type_, false)?;
+        let set_name = wit_encoder::Ident::new(format!("set-{generic_type}"));
+        if !self
+            .interface
+            .type_defs_mut()
+            .iter()
+            .any(|td| td.name() == &set_name)
+        {
+            let set = wit_encoder::TypeDef::resource(
+                set_name.clone(),
+                [{
+                    let mut func = wit_encoder::ResourceFunc::method("has");
+                    func.params(("value", generic_type));
+                    func.results(wit_encoder::Type::Bool);
+                    func
+                }],
+            );
+            self.interface.type_defs_mut().push(set);
+        }
+        Ok(set_name)
     }
 }
