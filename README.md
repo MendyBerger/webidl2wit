@@ -52,3 +52,5 @@ If you have any thoughts, please use the [discussion about this table](https://g
 | `typedef`                       | `type`                |
 
 ❓ = Not yet sure how to deal with this type.
+
+// use for docs? https://github.com/rustwasm/wasm-bindgen/blob/dd504330637becd0bfb98e4e3e35f66572f26fe3/crates/webidl/src/util.rs#L83

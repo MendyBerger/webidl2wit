@@ -298,4 +298,38 @@ impl<'a> State<'a> {
         }
         Ok(set_name)
     }
+
+    pub(crate) fn add_record<'b>(
+        &mut self,
+        record: &weedle::types::RecordType<'b>,
+    ) -> anyhow::Result<wit_encoder::Ident> {
+        let key = match &*record.generics.body.0 {
+            weedle::types::RecordKeyType::Byte(_) | weedle::types::RecordKeyType::DOM(_) | weedle::types::RecordKeyType::USV(_) => {
+                wit_encoder::Type::String
+            },
+            weedle::types::RecordKeyType::NonAny(ty) => {
+                self.wi_non_any2w(ty, false)?
+            },
+        };
+        let value = self.wi2w_type(&record.generics.body.2, false)?;
+
+        let record_name = wit_encoder::Ident::new(format!("record-{key}-{value}"));
+        if !self
+            .interface
+            .type_defs_mut()
+            .iter()
+            .any(|td| td.name() == &record_name)
+        {
+            let set = wit_encoder::TypeDef::resource(
+                record_name.clone(),
+                [{
+                    let mut func = wit_encoder::ResourceFunc::method("add");
+                    func.params(wit_encoder::Params::from_iter([("key", key), ("value", value)]));
+                    func
+                }],
+            );
+            self.interface.type_defs_mut().push(set);
+        }
+        Ok(record_name)
+    }
 }

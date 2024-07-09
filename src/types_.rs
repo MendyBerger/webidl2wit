@@ -72,7 +72,7 @@ impl<'a> State<'a> {
     }
 
     // WebIdl non any 2 Wit
-    fn wi_non_any2w(
+    pub(crate) fn wi_non_any2w(
         &mut self,
         wi: &weedle::types::NonAnyType,
         optional: bool,
@@ -137,7 +137,10 @@ impl<'a> State<'a> {
             weedle::types::NonAnyType::ArrayBufferView(_) => todo!(),
             weedle::types::NonAnyType::BufferSource(_) => todo!(),
             weedle::types::NonAnyType::FrozenArrayType(_) => todo!(),
-            weedle::types::NonAnyType::RecordType(_) => todo!(),
+            weedle::types::NonAnyType::RecordType(record) => {
+                let record = self.add_record(&record.type_)?;
+                wit_encoder::Type::named(record)
+            },
         };
 
         Ok(match optional {
